@@ -1,14 +1,16 @@
 use std::{
 	env,
 	fs::{self, File},
+	io::{self, BufRead},
 	path::Path,
-	process::Command,
+	process::{Child, Command, Stdio},
 	thread::sleep,
 	time::Duration,
 };
 
 use chrono::Utc;
 use env_logger::{Env, Target};
+use log::info;
 
 fn main() {
 	let mut time_stamp = Utc::now().format("%Y-%m-%dT%H:%M:%S+00:00");
@@ -54,41 +56,61 @@ fn main() {
 	args.extend([archive_name.as_ref(), env!("IN_DIR")].iter());
 
 	log::info!("Backing Up!");
-	Command::new(format!("{}/borg", env!("BORG_LOC")))
+	log(Command::new(format!("{}/borg", env!("BORG_LOC")))
 		.env(
 			"BORG_REPO",
 			format!("Borg:{}/{}", env!("OUT_DIR"), env!("NAME")),
 		)
 		.env("BORG_PASSPHRASE", env!("PASS"))
 		.args(args)
+		.stdout(Stdio::piped())
+		.stderr(Stdio::piped())
 		.spawn()
-		.unwrap()
-		.wait()
-		.unwrap();
+		.unwrap());
 
 	log::info!("Pruning!");
-	Command::new(format!("{}/borg", env!("BORG_LOC")))
+	log(Command::new(format!("{}/borg", env!("BORG_LOC")))
 		.env(
 			"BORG_REPO",
-			format!("Borg:{}{}", env!("OUT_DIR"), env!("NAME")),
+			format!("Borg:{}/{}", env!("OUT_DIR"), env!("NAME")),
 		)
 		.env("BORG_PASSPHRASE", env!("PASS"))
 		.args(["prune", "-psvd", "7", "-w", "4", "-m", "6"])
+		.stdout(Stdio::piped())
+		.stderr(Stdio::piped())
 		.spawn()
-		.unwrap()
-		.wait()
-		.unwrap();
+		.unwrap());
 
 	log::info!("Compacting!");
-	Command::new(format!("{}/borg", env!("BORG_LOC")))
+	log(Command::new(format!("{}/borg", env!("BORG_LOC")))
 		.env(
 			"BORG_REPO",
-			format!("Borg:{}{}", env!("OUT_DIR"), env!("NAME")),
+			format!("Borg:{}/{}", env!("OUT_DIR"), env!("NAME")),
 		)
 		.env("BORG_PASSPHRASE", env!("PASS"))
 		.arg("compact")
+		.stdout(Stdio::piped())
+		.stderr(Stdio::piped())
 		.spawn()
-		.unwrap()
-		.wait()
-		.unwrap();
+		.unwrap());
+}
+
+fn log(mut child: Child) {
+	child.wait().unwrap();
+	if let Some(stdout) = child.stdout {
+		let reader = io::BufReader::new(stdout);
+		for line in reader.lines() {
+			if let Ok(line) = line {
+				info!("{}", line);
+			}
+		}
+	}
+	if let Some(stderr) = child.stderr {
+		let reader = io::BufReader::new(stderr);
+		for line in reader.lines() {
+			if let Ok(line) = line {
+				info!("{}", line);
+			}
+		}
+	}
 }
