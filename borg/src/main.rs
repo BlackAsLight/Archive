@@ -57,7 +57,7 @@ fn main() {
 	Command::new(format!("{}/borg", env!("BORG_LOC")))
 		.env(
 			"BORG_REPO",
-			format!("Borg:{}{}", env!("OUT_DIR"), env!("NAME")),
+			format!("Borg:{}/{}", env!("OUT_DIR"), env!("NAME")),
 		)
 		.env("BORG_PASSPHRASE", env!("PASS"))
 		.args(args)
