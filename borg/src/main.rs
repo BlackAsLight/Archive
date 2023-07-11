@@ -17,7 +17,9 @@ fn main() {
 	dotenv::dotenv().ok();
 	env_logger::builder()
 		.parse_env(Env::new().default_filter_or("debug"))
-		.format_indent(Some(4))
+		.format_indent(None)
+		.format_level(false)
+		.format_timestamp(None)
 		.format_target(false)
 		.target(if let Ok(path) = env::var("LOGS") {
 			Target::Pipe(Box::new({
@@ -63,8 +65,16 @@ fn main() {
 		)
 		.env("BORG_PASSPHRASE", env!("PASS"))
 		.args(args)
-		.stdout(Stdio::piped())
-		.stderr(Stdio::piped())
+		.stdout(if env::var("LOGS").is_ok() {
+			Stdio::piped()
+		} else {
+			Stdio::inherit()
+		})
+		.stderr(if env::var("LOGS").is_ok() {
+			Stdio::piped()
+		} else {
+			Stdio::inherit()
+		})
 		.spawn()
 		.unwrap());
 
@@ -76,8 +86,16 @@ fn main() {
 		)
 		.env("BORG_PASSPHRASE", env!("PASS"))
 		.args(["prune", "-psvd", "7", "-w", "4", "-m", "6"])
-		.stdout(Stdio::piped())
-		.stderr(Stdio::piped())
+		.stdout(if env::var("LOGS").is_ok() {
+			Stdio::piped()
+		} else {
+			Stdio::inherit()
+		})
+		.stderr(if env::var("LOGS").is_ok() {
+			Stdio::piped()
+		} else {
+			Stdio::inherit()
+		})
 		.spawn()
 		.unwrap());
 
@@ -89,8 +107,16 @@ fn main() {
 		)
 		.env("BORG_PASSPHRASE", env!("PASS"))
 		.arg("compact")
-		.stdout(Stdio::piped())
-		.stderr(Stdio::piped())
+		.stdout(if env::var("LOGS").is_ok() {
+			Stdio::piped()
+		} else {
+			Stdio::inherit()
+		})
+		.stderr(if env::var("LOGS").is_ok() {
+			Stdio::piped()
+		} else {
+			Stdio::inherit()
+		})
 		.spawn()
 		.unwrap());
 }
