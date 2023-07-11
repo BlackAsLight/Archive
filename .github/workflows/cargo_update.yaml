@@ -1,0 +1,22 @@
+name: Update Cargo.lock
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Cargo Update
+        run: cargo update
+      - name: Commit Changes
+        run: |
+          if git diff --name-only | grep -q ''; then
+            git config --global user.name "BlackAsLight"
+            git config --global user.email "44320105+BlackAsLight@users.noreply.github.com"
+            git commit -am "Update Cargo.lock"
+            git push
+          fi
