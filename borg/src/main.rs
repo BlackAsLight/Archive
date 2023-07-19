@@ -14,6 +14,7 @@ use log::info;
 
 fn main() {
 	let mut time_stamp = Utc::now().format("%Y-%m-%dT%H:%M:%S+00:00");
+	println!("{time_stamp}");
 	dotenv::dotenv().ok();
 	env_logger::builder()
 		.parse_env(Env::new().default_filter_or("debug"))
