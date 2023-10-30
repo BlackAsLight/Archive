@@ -1,0 +1,15 @@
+{
+	"cSpell.words": [
+		"chrono",
+		"dotenv",
+		"nodump",
+		"psvd"
+	],
+	"rust-analyzer.server.extraEnv": {
+		"NAME": "",
+		"PASS": "",
+		"IN_DIR": "",
+		"OUT_DIR": "",
+		"BORG_LOC": ""
+	}
+}
